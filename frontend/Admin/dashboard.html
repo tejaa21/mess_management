@@ -1,0 +1,499 @@
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MessMate Admin - Control Room</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: { 
+            colors: { 
+                brand: { DEFAULT: '#D96B43', hover: '#C55D37' } 
+            } 
+            }
+        }
+        }
+        if (localStorage.getItem('admin_theme') === 'dark') {
+        document.documentElement.classList.add('dark');
+        }
+    </script>
+    </head>
+    <body class="bg-[#FAF8F5] text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 min-h-screen transition-colors duration-300 flex flex-col">
+
+    <div id="admin-app" class="flex-1 flex flex-col">
+        
+        <header class="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+        <div class="flex flex-col text-left">
+            <span class="text-[10px] uppercase tracking-wider font-bold text-zinc-400">ADMIN CONTROL PANEL</span>
+            <h2 class="text-xl font-black tracking-tight text-zinc-800 dark:text-white">Mess Hall Terminal</h2>
+        </div>
+        <div class="flex items-center gap-4">
+            <button onclick="toggleTheme()" class="p-2.5 rounded-full border dark:border-zinc-800 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 block dark:hidden"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 hidden dark:block text-amber-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.22 4.22l1.59 1.59m11.36 11.36l1.59 1.59M3 12h2.25m13.5 0H21m-16.78 6.78l1.59-1.59M17.66 6.34l1.59-1.59M12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z" /></svg>
+            </button>
+            
+        </div>
+        </header>
+
+        <nav class="px-6 py-4 flex flex-wrap gap-2 items-center bg-white dark:bg-zinc-950 border-b border-zinc-100 dark:border-zinc-900">
+        <button onclick="switchTab('overview')" id="btn-overview" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-brand text-white shadow-sm">Overview Matrix</button>
+        <button onclick="switchTab('students')" id="btn-students" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800">Manage Students</button>
+        <button onclick="switchTab('menu')" id="btn-menu" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800">Weekly Menu Planner</button>
+        <button onclick="switchTab('payments')" id="btn-payments" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800">Payments Ledger</button>
+        <button onclick="switchTab('waste')" id="btn-waste" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800">Waste Logistics</button>
+        <button onclick="switchTab('feedback')" id="btn-feedback" class="tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800">Student Reviews</button>
+        </nav>
+
+        <main class="flex-1 max-w-7xl w-full mx-auto p-6">
+        
+        <section id="tab-overview" class="tab-content space-y-6">
+            <div class="grid grid-cols-2 md:grid-cols-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-950 divide-x divide-y divide-zinc-200 dark:divide-zinc-800 text-left">
+            <div class="p-5 space-y-1">
+                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Registered</span>
+                <div id="stat-total" class="text-2xl font-black">0</div>
+            </div>
+            <div class="p-5 space-y-1">
+                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Opted-In Today</span>
+                <div id="stat-active" class="text-2xl font-black text-emerald-600">0</div>
+            </div>
+            <div class="p-5 space-y-1">
+                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Monthly Revenue</span>
+                <div id="stat-revenue" class="text-2xl font-black text-brand">₹0</div>
+            </div>
+            <div class="p-5 space-y-1">
+                <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Total Deficit Dues</span>
+                <div id="stat-dues" class="text-2xl font-black text-red-500">₹0</div>
+            </div>
+            </div>
+
+            <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 text-left space-y-3">
+            <div class="flex items-center justify-between">
+                <h3 class="text-sm font-black tracking-tight uppercase text-zinc-400">Live Meal Production Forecast (Today's Kitchen Load)</h3>
+                <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 font-mono text-[10px] font-bold rounded-md">LIVE REFRESH</span>
+            </div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div class="p-4 rounded-xl bg-[#FAF8F5] dark:bg-zinc-900 border dark:border-zinc-800 flex items-center justify-between">
+                <span class="text-xs font-bold text-zinc-600 dark:text-zinc-400">🟢 Total Veg Food to Make</span>
+                <span id="forecast-veg" class="text-xl font-black text-emerald-600 dark:text-emerald-400">0</span>
+                </div>
+                <div class="p-4 rounded-xl bg-[#FAF8F5] dark:bg-zinc-900 border dark:border-zinc-800 flex items-center justify-between">
+                <span class="text-xs font-bold text-zinc-600 dark:text-zinc-400">🔴 Total Non-Veg Food to Make</span>
+                <span id="forecast-nonveg" class="text-xl font-black text-brand">0</span>
+                </div>
+            </div>
+            </div>
+        </section>
+
+        <section id="tab-students" class="tab-content space-y-4 hidden">
+            <div class="grid grid-cols-2 gap-4 max-w-md text-left">
+            <div class="p-4 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900 rounded-2xl shadow-sm">
+                <span class="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 uppercase tracking-wider block">Total Active Students</span>
+                <div id="list-total-active" class="text-2xl font-black text-emerald-700 dark:text-emerald-300">0</div>
+            </div>
+            <div class="p-4 bg-zinc-100 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-sm">
+                <span class="text-[10px] font-bold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider block">Total Inactive Students</span>
+                <div id="list-total-inactive" class="text-2xl font-black text-zinc-700 dark:text-zinc-300">0</div>
+            </div>
+            </div>
+
+            <div class="flex flex-wrap justify-between items-center gap-4 pt-2">
+            <div class="flex gap-3">
+                <select id="filter-diet" onchange="renderStudents()" class="px-4 py-2 text-xs font-semibold rounded-xl border bg-white dark:bg-zinc-950 dark:border-zinc-800 outline-none cursor-pointer focus:border-brand">
+                <option value="all">All diets</option>
+                <option value="Veg">Veg</option>
+                <option value="Non-Veg">Non-Veg</option>
+                </select>
+                
+                <select id="filter-status" onchange="renderStudents()" class="px-4 py-2 text-xs font-semibold rounded-xl border bg-white dark:bg-zinc-950 dark:border-zinc-800 outline-none cursor-pointer focus:border-brand">
+                <option value="all">All states</option>
+                <option value="active">Eating today</option>
+                <option value="inactive">Skipping</option>
+                </select>
+            </div>
+            
+            <button onclick="exportToCSV()" class="px-4 py-2 rounded-xl text-xs font-bold border dark:border-zinc-800 bg-white dark:bg-zinc-950 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-all">
+                Export CSV
+            </button>
+            </div>
+
+            <div class="border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-950 overflow-x-auto shadow-sm">
+            <table class="w-full text-xs text-left whitespace-nowrap">
+                <thead class="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-bold tracking-wider text-zinc-400 uppercase select-none">
+                <tr>
+                    <th onclick="handleSort('fullName')" class="px-6 py-3.5 cursor-pointer hover:text-brand">Name <span id="sort-fullName"></span></th>
+                    <th class="px-6 py-3.5">Index</th>
+                    <th onclick="handleSort('department')" class="px-6 py-3.5 cursor-pointer hover:text-brand">Dept <span id="sort-department"></span></th>
+                    <th class="px-6 py-3.5">Diet</th>
+                    <th onclick="handleSort('active')" class="px-6 py-3.5 cursor-pointer hover:text-brand">Active <span id="sort-active"></span></th>
+                    <th onclick="handleSort('paid')" class="px-6 py-3.5 cursor-pointer hover:text-brand">Paid <span id="sort-paid"></span></th>
+                    <th onclick="handleSort('balance')" class="px-6 py-3.5 cursor-pointer hover:text-brand">Balance <span id="sort-balance"></span></th>
+                    <th class="px-6 py-3.5 text-center">Action</th>
+                </tr>
+                </thead>
+                <tbody id="student-table-body" class="divide-y divide-zinc-200 dark:divide-zinc-800 font-medium">
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <section id="tab-menu" class="tab-content space-y-4 hidden text-left">
+            <div class="flex items-center justify-between">
+            <div>
+                <h3 class="text-base font-black tracking-tight">Weekly Catering Menu Matrix</h3>
+                <p class="text-xs text-zinc-400">Modify any field cell box inline directly. Changes lock on clicking save.</p>
+            </div>
+            <button onclick="saveMenu()" class="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-xl transition-all shadow-md">
+                Save Full Week Matrix
+            </button>
+            </div>
+
+            <div class="border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-950 overflow-x-auto shadow-sm">
+            <table class="w-full text-xs text-left">
+                <thead class="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-bold tracking-wider text-zinc-400 uppercase select-none">
+                <tr>
+                    <th class="px-4 py-3.5 w-28">Day</th>
+                    <th class="px-4 py-3.5">Breakfast Session</th>
+                    <th class="px-4 py-3.5">Lunch Session</th>
+                    <th class="px-4 py-3.5">Snacks Session</th>
+                    <th class="px-4 py-3.5">Dinner Session</th>
+                </tr>
+                </thead>
+                <tbody id="weekly-menu-matrix-body" class="divide-y divide-zinc-200 dark:divide-zinc-800 font-medium">
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <section id="tab-payments" class="tab-content max-w-xl mx-auto space-y-4 hidden text-left">
+            <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4 shadow-sm">
+            <h3 class="text-base font-black tracking-tight">Clear Account Dues Ledger</h3>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">SELECT STUDENT IDENTITY</label>
+                <select id="pay-student-idx" class="w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-zinc-950 text-xs font-semibold dark:border-zinc-800 outline-none focus:border-brand transition-all">
+                </select>
+            </div>
+            <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">AMOUNT CREDITED (₹)</label>
+                <input type="number" id="pay-amount" placeholder="e.g. 500" class="w-full px-4 py-2.5 rounded-xl border bg-transparent text-xs font-semibold dark:border-zinc-800 outline-none focus:border-brand transition-all" />
+            </div>
+            <button onclick="submitPayment()" class="px-5 py-2.5 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-xl transition-all shadow-md">Post Transaction Record</button>
+            </div>
+        </section>
+
+        <section id="tab-waste" class="tab-content space-y-6 hidden text-left">
+            <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4 shadow-sm max-w-xl">
+            <h3 class="text-base font-black tracking-tight">Log Canteen Kitchen Leftover Deficit Metrics</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">LOG ENTRY DATE</label>
+                <input type="date" id="waste-date" class="w-full px-4 py-2 rounded-xl border bg-transparent text-xs font-semibold dark:border-zinc-800 outline-none focus:border-brand transition-all" />
+                </div>
+                <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TOTAL COOKED (KG)</label>
+                <input type="number" id="waste-cooked" placeholder="0" class="w-full px-4 py-2 rounded-xl border bg-transparent text-xs font-semibold dark:border-zinc-800 outline-none focus:border-brand transition-all" />
+                </div>
+                <div class="space-y-1.5">
+                <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">TOTAL CONSUMED (KG)</label>
+                <input type="number" id="waste-consumed" placeholder="0" class="w-full px-4 py-2 rounded-xl border bg-transparent text-xs font-semibold dark:border-zinc-800 outline-none focus:border-brand transition-all" />
+                </div>
+            </div>
+            <button onclick="logWasteSubmit()" class="px-5 py-2 bg-brand hover:bg-brand-hover text-white text-xs font-bold rounded-xl transition-all shadow-md">Log Metrics</button>
+            </div>
+
+            <div class="border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-950 overflow-x-auto shadow-sm">
+            <table class="w-full text-xs text-left whitespace-nowrap">
+                <thead class="bg-zinc-50 dark:bg-zinc-900 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-bold tracking-wider text-zinc-400 uppercase">
+                <tr>
+                    <th class="px-6 py-3.5">Log Date</th>
+                    <th class="px-6 py-3.5">Total Cooked Mass</th>
+                    <th class="px-6 py-3.5">Total Consumed Mass</th>
+                    <th class="px-6 py-3.5">Loss Waste Matrix (%)</th>
+                </tr>
+                </thead>
+                <tbody id="waste-table-body" class="divide-y divide-zinc-200 dark:divide-zinc-800 font-medium">
+                </tbody>
+            </table>
+            </div>
+        </section>
+
+        <section id="tab-feedback" class="tab-content space-y-4 hidden text-left">
+            <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm max-w-xl">
+            <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">AGGREGATE QUALITY SCORE</span>
+            <div class="flex items-baseline gap-2 mt-1">
+                <div class="text-3xl font-black text-brand">4.5</div>
+                <div class="text-xs text-zinc-400">out of 5.0 stars (based on today's logs)</div>
+            </div>
+            </div>
+
+            <div class="space-y-3 max-w-2xl" id="feedback-feed-box">
+            <div class="p-4 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-xl space-y-1">
+                <div class="flex justify-between items-center"><span class="font-bold text-xs text-zinc-400 uppercase">⭐⭐⭐⭐⭐ • Anonymous Student</span><span class="text-[10px] text-zinc-400 font-mono">Today</span></div>
+                <p class="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Paneer Butter Masala curry served during lunch was incredible today! Thanks.</p>
+            </div>
+            </div>
+        </section>
+
+        </main>
+    </div>
+
+    <script>
+        // Master Global Memory Datasets Schema
+        let students = [
+        { indexNumber: "MM-2026-0001", fullName: "TEST_Student_fba89893", department: "CSE", dietPreference: "Veg", active: true, paid: 4000, balance: -500, suspended: false },
+        { indexNumber: "MM-2026-0002", fullName: "Akshata", department: "CS", dietPreference: "Veg", active: true, paid: 3500, balance: 0, suspended: false },
+        { indexNumber: "MM-2026-0003", fullName: "aa", department: "a", dietPreference: "Veg", active: true, paid: 3500, balance: 0, suspended: false }
+        ];
+
+        let defaultWeeklyMenu = [
+        { day: "Monday", bfast: "Poha, Tea", lunch: "Roti, Sabzi, Dal, Rice", snacks: "Biscuits", dinner: "Khichdi, Kadhi" },
+        { day: "Tuesday", bfast: "Idli, Sambar", lunch: "Veg Biryani, Raita", snacks: "Samosa", dinner: "Roti, Paneer, Rice" },
+        { day: "Wednesday", bfast: "Upma, Tea", lunch: "Chole Bhature", snacks: "Kachori", dinner: "Alloo Paratha, Curd" },
+        { day: "Thursday", bfast: "Dosa, Chutney", lunch: "Roti, Mix-Veg, Dal", snacks: "Sandwich", dinner: "Egg Curry / Veg Korma" },
+        { day: "Friday", bfast: "Paratha, Tea", lunch: "Dal Makhani, Jeera Rice", snacks: "Pakora", dinner: "Roti, Chicken / Paneer" },
+        { day: "Saturday", bfast: "Puri Bhaji", lunch: "Misal Pav", snacks: "Toast", dinner: "Veg Pulao, Dal" },
+        { day: "Sunday", bfast: "Aloo Poha", lunch: "Special Veg Thali", snacks: "Chai", dinner: "Pav Bhaji" }
+        ];
+
+        let wasteLogs = [{ date: "2026-05-20", cooked: 100, consumed: 85 }];
+        let sortConfig = { key: null, direction: 'asc' };
+
+        document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById('waste-date').valueAsDate = new Date();
+        calculateSystemMetrics();
+        buildWeeklyMenuMatrix();
+        renderStudents();
+        renderWaste();
+        populateStudentDropdowns();
+        });
+
+        // METRICS CALCULATOR ENGINE
+        function calculateSystemMetrics() {
+        const total = students.length;
+        const activeCount = students.filter(s => s.active && !s.suspended).length;
+        const inactiveCount = total - activeCount;
+        
+        const totalRevenue = students.reduce((sum, s) => sum + s.paid, 0);
+        const totalDues = students.reduce((sum, s) => sum + (s.balance < 0 ? Math.abs(s.balance) : 0), 0);
+
+        const activeVegCount = students.filter(s => s.active && !s.suspended && s.dietPreference === 'Veg').length;
+        const activeNonVegCount = students.filter(s => s.active && !s.suspended && s.dietPreference === 'Non-Veg').length;
+
+        // Core Overview Bindings
+        document.getElementById('stat-total').innerText = total;
+        document.getElementById('stat-active').innerText = activeCount;
+        document.getElementById('stat-revenue').innerText = `₹${totalRevenue}`;
+        document.getElementById('stat-dues').innerText = `₹${totalDues}`;
+
+        // Kitchen Production Counters Elements updates
+        document.getElementById('forecast-veg').innerText = activeVegCount;
+        document.getElementById('forecast-nonveg').innerText = activeNonVegCount;
+
+        // Student Section Counter Bindings
+        document.getElementById('list-total-active').innerText = activeCount;
+        document.getElementById('list-total-inactive').innerText = inactiveCount;
+        }
+
+        // STUDENT TABLE RENDERING ENGINE (Includes Filters & Column Sorters)
+        function renderStudents() {
+        const dietFilter = document.getElementById('filter-diet').value;
+        const statusFilter = document.getElementById('filter-status').value;
+        const tbody = document.getElementById('student-table-body');
+        
+        let processed = [...students];
+
+        // 1. Core Sorting Array Matrix Evaluation
+        if (sortConfig.key) {
+            processed.sort((a, b) => {
+            let valA = a[sortConfig.key];
+            let valB = b[sortConfig.key];
+            return sortConfig.direction === 'asc' ? (valA > valB ? 1 : -1) : (valA < valB ? 1 : -1);
+            });
+        }
+
+        // 2. Dropdown Filter Evaluation: Diet Configuration
+        if (dietFilter !== 'all') {
+            processed = processed.filter(s => s.dietPreference === dietFilter);
+        }
+
+        // 3. Dropdown Filter Evaluation: Meal Status Configuration
+        if (statusFilter !== 'all') {
+            if (statusFilter === 'active') {
+            processed = processed.filter(s => s.active && !s.suspended);
+            } else if (statusFilter === 'inactive') {
+            processed = processed.filter(s => !s.active || s.suspended);
+            }
+        }
+
+        tbody.innerHTML = processed.map(s => `
+            <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50 ${s.suspended ? 'opacity-40 bg-red-50/10' : ''}">
+            <td class="px-6 py-4 font-bold text-zinc-700 dark:text-zinc-200">${s.fullName} ${s.suspended ? '[BLOCKED]' : ''}</td>
+            <td class="px-6 py-4 font-mono text-[11px]">${s.indexNumber}</td>
+            <td class="px-6 py-4">${s.department}</td>
+            <td class="px-6 py-4">${s.dietPreference}</td>
+            <td class="px-6 py-4">
+                ${s.active ? '✓' : '✕'}
+            </td>
+            <td class="px-6 py-4">₹${s.paid}</td>
+            <td class="px-6 py-4 font-bold ${s.balance < 0 ? 'text-red-500' : 'text-zinc-500'}">${s.balance < 0 ? `-₹${Math.abs(s.balance)}` : `₹${s.balance}`}</td>
+            <td class="px-6 py-4 text-center">
+                <button onclick="toggleActiveStatus('${s.indexNumber}')" class="px-3 py-1 text-[11px] border rounded-xl font-bold bg-white dark:bg-zinc-900 shadow-sm hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all">
+                Toggle
+                </button>
+            </td>
+            </tr>
+        `).join('');
+        }
+
+        function handleSort(key) {
+        sortConfig.direction = (sortConfig.key === key && sortConfig.direction === 'asc') ? 'desc' : 'asc';
+        sortConfig.key = key;
+        ['fullName', 'department', 'active', 'paid', 'balance'].forEach(k => {
+            const el = document.getElementById(`sort-${k}`);
+            if(el) el.innerText = '';
+        });
+        document.getElementById(`sort-${key}`).innerText = sortConfig.direction === 'asc' ? ' ↑' : ' ↓';
+        renderStudents();
+        }
+
+        function toggleActiveStatus(idx) {
+        const match = students.find(s => s.indexNumber === idx);
+        if (match) {
+            match.active = !match.active;
+            calculateSystemMetrics();
+            renderStudents();
+        }
+        }
+
+        // WEEKLY MENU MATRIX GENERATION BUILDER
+        function buildWeeklyMenuMatrix() {
+        const matrixBody = document.getElementById('weekly-menu-matrix-body');
+        matrixBody.innerHTML = defaultWeeklyMenu.map((m, idx) => `
+            <tr class="hover:bg-zinc-50/40 dark:hover:bg-zinc-900/30">
+            <td class="px-4 py-3 font-bold bg-zinc-50/50 dark:bg-zinc-900/50 text-zinc-600 dark:text-zinc-300">${m.day}</td>
+            <td class="px-2 py-2">
+                <input type="text" value="${m.bfast}" data-idx="${idx}" data-meal="bfast" class="menu-matrix-input w-full px-2 py-1.5 text-xs bg-transparent border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 rounded focus:bg-white dark:focus:bg-zinc-950 focus:border-brand dark:focus:border-brand outline-none transition-all font-medium" />
+            </td>
+            <td class="px-2 py-2">
+                <input type="text" value="${m.lunch}" data-idx="${idx}" data-meal="lunch" class="menu-matrix-input w-full px-2 py-1.5 text-xs bg-transparent border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 rounded focus:bg-white dark:focus:bg-zinc-950 focus:border-brand dark:focus:border-brand outline-none transition-all font-medium" />
+            </td>
+            <td class="px-2 py-2">
+                <input type="text" value="${m.snacks}" data-idx="${idx}" data-meal="snacks" class="menu-matrix-input w-full px-2 py-1.5 text-xs bg-transparent border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 rounded focus:bg-white dark:focus:bg-zinc-950 focus:border-brand dark:focus:border-brand outline-none transition-all font-medium" />
+            </td>
+            <td class="px-2 py-2">
+                <input type="text" value="${m.dinner}" data-idx="${idx}" data-meal="dinner" class="menu-matrix-input w-full px-2 py-1.5 text-xs bg-transparent border border-transparent hover:border-zinc-300 dark:hover:border-zinc-700 rounded focus:bg-white dark:focus:bg-zinc-950 focus:border-brand dark:focus:border-brand outline-none transition-all font-medium" />
+            </td>
+            </tr>
+        `).join('');
+        }
+
+        function saveMenu() {
+        const inputs = document.querySelectorAll('.menu-matrix-input');
+        inputs.forEach(input => {
+            const idx = input.getAttribute('data-idx');
+            const meal = input.getAttribute('data-meal');
+            defaultWeeklyMenu[idx][meal] = input.value;
+        });
+        alert("✅ Full week timetable matrix updated and broadcasted to students successfully.");
+        }
+
+        // EXPORT REPORT MECHANICS
+        function exportToCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,Name,Index,Department,Diet,MealStatus,Paid,Balance\n";
+        students.forEach(s => {
+            csvContent += `"${s.fullName}","${s.indexNumber}","${s.department}","${s.dietPreference}","${s.active ? 'Active' : 'Inactive'}",${s.paid},${s.balance}\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `MessMate_Report_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        }
+
+        // LEDGER FOR PAYMENTS MANAGEMENT
+        function populateStudentDropdowns() {
+        const dropdown = document.getElementById('pay-student-idx');
+        dropdown.innerHTML = '<option disabled selected>Select dynamic target profile...</option>' + 
+            students.map(s => `<option value="${s.indexNumber}">${s.fullName} (${s.indexNumber})</option>`).join('');
+        }
+
+        function submitPayment() {
+        const targetIdx = document.getElementById('pay-student-idx').value;
+        const amount = parseInt(document.getElementById('pay-amount').value);
+
+        if (!targetIdx || isNaN(amount) || amount <= 0) {
+            alert("Provide a valid numeric parameter input value.");
+            return;
+        }
+
+        const match = students.find(s => s.indexNumber === targetIdx);
+        if (match) {
+            match.paid += amount;
+            match.balance += amount;
+            alert(`Payment transaction finalized. Account ledger balance for ${match.fullName} updated.`);
+            document.getElementById('pay-amount').value = '';
+            calculateSystemMetrics();
+            renderStudents();
+        }
+        }
+
+        function logWasteSubmit() {
+        const date = document.getElementById('waste-date').value;
+        const cooked = parseFloat(document.getElementById('waste-cooked').value);
+        const consumed = parseFloat(document.getElementById('waste-consumed').value);
+
+        if (!date || isNaN(cooked) || isNaN(consumed) || cooked < consumed) {
+            alert("Review data parameters. Cooked capacity mass variables cannot log below food breakdown totals.");
+            return;
+        }
+
+        wasteLogs.unshift({ date, cooked, consumed });
+        renderWaste();
+        document.getElementById('waste-cooked').value = '';
+        document.getElementById('waste-consumed').value = '';
+        }
+
+        function renderWaste() {
+        const tbody = document.getElementById('waste-table-body');
+        tbody.innerHTML = wasteLogs.map(w => {
+            const wasteKg = w.cooked - w.consumed;
+            const ratio = w.cooked > 0 ? Math.round((wasteKg / w.cooked) * 100) : 0;
+            return `
+            <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-900/50">
+                <td class="px-6 py-4 font-bold">${w.date}</td>
+                <td class="px-6 py-4">${w.cooked} KG</td>
+                <td class="px-6 py-4">${w.consumed} KG</td>
+                <td class="px-6 py-4 font-bold ${ratio > 10 ? 'text-red-500' : 'text-emerald-500'}">${ratio}%</td>
+            </tr>
+            `;
+        }).join('');
+        }
+
+        // VIEW ROUTING CONTROLLERS
+        function switchTab(tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.className = "tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-zinc-100 text-zinc-600 hover:bg-zinc-200 dark:bg-zinc-900 dark:text-zinc-400 dark:hover:bg-zinc-800";
+        });
+        document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+        document.getElementById(`btn-${tabId}`).className = "tab-btn px-4 py-1.5 rounded-full text-xs font-bold transition-all bg-brand text-white shadow-sm";
+        }
+
+        // TOGGLE MODE
+        function toggleTheme() {
+        if (document.documentElement.classList.contains('dark')) {
+            document.documentElement.classList.remove('dark');
+            localStorage.setItem('admin_theme', 'light');
+        } else {
+            document.documentElement.classList.add('dark');
+            localStorage.setItem('admin_theme', 'dark');
+        }
+        }
+    </script>
+    </body>
+    </html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MessMate - Student Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: { 
+          colors: { 
+            brand: { DEFAULT: '#D96B43', hover: '#C55D37' } 
+          } 
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#FAF8F5] text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 min-h-screen transition-colors duration-300 flex flex-col">
+
+  <div id="dashboard-app" class="flex-1 flex flex-col">
+    <header class="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950">
+      <div class="flex flex-col text-left">
+        <span class="text-[10px] uppercase tracking-wider font-bold text-zinc-400">STUDENT ACTIVE PROFILE SECURE NODE</span>
+        <h2 id="welcome-name" class="text-lg font-black tracking-tight text-zinc-800 dark:text-white">Hi, Student!</h2>
+      </div>
+      
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+      <div onclick="toggleAttendance()" id="attendance-banner" class="w-full bg-brand text-white p-6 rounded-2xl cursor-pointer shadow-lg shadow-brand/10 transition-transform active:scale-[0.99] flex items-center justify-between relative overflow-hidden">
+        <div class="space-y-1 text-left">
+          <span class="text-[10px] tracking-widest font-bold opacity-75 uppercase">TAP TO CHANGE ATTENDANCE MATRIX STATE</span>
+          <h3 id="attendance-title" class="text-2xl font-black tracking-tight">I'm dining today</h3>
+          <p id="attendance-desc" class="text-xs opacity-80">Status: Active. Tap to save meal count records.</p>
+        </div>
+        <div class="bg-white/10 p-3 rounded-xl border border-white/10">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M9.813 15.904 9 21l8.982-11.725H14.18l.813-5.179L6 15.904h3.813Z" /></svg>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold tracking-wider text-zinc-400 block uppercase">YOUR GENERATED DIGITAL ACCESS ID</span>
+          <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden shadow-sm">
+            <div class="bg-brand text-white px-4 py-3 flex justify-between items-center">
+              <span class="text-xs font-black tracking-wider uppercase">MESSMATE - CAMPUS ID</span>
+              <span id="card-id" class="text-xs font-mono font-bold">MM-2026-0000</span>
+            </div>
+            <div class="p-4 flex gap-4 items-start">
+              <div class="w-24 aspect-square rounded-xl bg-zinc-100 border dark:border-zinc-800 overflow-hidden shrink-0">
+                <img id="card-photo" src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=200&auto=format&fit=crop" class="w-full h-full object-cover" alt="Student Profile Picture" />
+              </div>
+              <div class="flex-1 text-left space-y-2 text-xs">
+                <h4 id="card-name" class="text-base font-black tracking-tight uppercase truncate">Student Name</h4>
+                <div class="grid grid-cols-2 gap-x-2 gap-y-1 text-[11px]">
+                  <span class="text-zinc-400 uppercase font-bold">DEPT</span>
+                  <span id="card-dept" class="text-zinc-700 dark:text-zinc-300 font-semibold truncate">-</span>
+                  <span class="text-zinc-400 uppercase font-bold">YEAR</span>
+                  <span id="card-year" class="text-zinc-700 dark:text-zinc-300 font-semibold">-</span>
+                  <span class="text-zinc-400 uppercase font-bold">DIET</span>
+                  <span id="card-diet" class="text-zinc-700 dark:text-zinc-300 font-semibold">-</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold tracking-wider text-zinc-400 block uppercase">TODAY'S LIVE CATERING MENU</span>
+          <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-3 text-xs text-left">
+            <div class="flex justify-between border-b pb-2 dark:border-zinc-800">
+              <span class="font-bold text-zinc-400">LUNCH</span>
+              <span class="font-semibold text-right text-zinc-700 dark:text-zinc-300">Jeera Rice, Dal Tadka, Paneer Butter Masala</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-bold text-zinc-400">DINNER</span>
+              <span class="font-semibold text-right text-zinc-700 dark:text-zinc-300">Chapati, Mix Veg Sabzi, Steamed Rice</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <span class="text-[11px] font-bold tracking-wider text-zinc-400 block uppercase">ACCOUNT METRICS</span>
+          <div class="bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 shadow-sm grid grid-cols-2 gap-4 text-left">
+            <div>
+              <span class="text-[10px] font-bold text-zinc-400 block uppercase">SUBSCRIPTION</span>
+              <div class="text-xl font-black text-emerald-600">PAID</div>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-zinc-400 block uppercase">MEALS EATEN</span>
+              <div class="text-xl font-black">24 / 30</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    // Global local interactive state
+    let isEatingToday = true;
+
+    // Load data pulled dynamically from registration form
+    document.addEventListener('DOMContentLoaded', () => {
+      const storedData = localStorage.getItem('activeStudentProfile');
+      
+      if (storedData) {
+        const student = JSON.parse(storedData);
+        
+        // Update welcome header card
+        const firstName = student.fullName.split(' ')[0];
+        document.getElementById('welcome-name').innerText = `Hi, ${firstName}!`;
+        
+        // Populate specific metadata inside the ID Card display elements
+        document.getElementById('card-name').innerText = student.fullName;
+        document.getElementById('card-id').innerText = student.indexNumber;
+        document.getElementById('card-dept').innerText = student.department;
+        document.getElementById('card-year').innerText = student.year;
+        document.getElementById('card-diet').innerText = student.dietPreference;
+        
+        // Load custom captured picture if it exists
+        const userPhoto = localStorage.getItem('messmate_avatar');
+        if (userPhoto) {
+          document.getElementById('card-photo').src = userPhoto;
+        }
+      }
+    });
+
+    // Handle interactive state variations
+    function toggleAttendance() {
+      isEatingToday = !isEatingToday;
+      
+      const title = document.getElementById('attendance-title');
+      const desc = document.getElementById('attendance-desc');
+      const banner = document.getElementById('attendance-banner');
+
+      if (isEatingToday) {
+        title.innerText = "I'm dining today";
+        desc.innerText = "Status: Active. Tap to save meal count records.";
+        banner.className = "w-full bg-brand text-white p-6 rounded-2xl cursor-pointer shadow-lg shadow-brand/10 transition-transform active:scale-[0.99] flex items-center justify-between relative overflow-hidden";
+      } else {
+        title.innerText = "I'm skipping meals today";
+        desc.innerText = "Status: Skipping today. Tap to restore normal settings.";
+        banner.className = "w-full bg-zinc-500 text-white p-6 rounded-2xl cursor-pointer shadow-lg shadow-zinc-500/10 transition-transform active:scale-[0.99] flex items-center justify-between relative overflow-hidden";
+      }
+    }
+
+    // Return safely back to the home page 
+    function logout() {
+      localStorage.removeItem('activeStudentProfile');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>
