@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MessMate - Zero-maintenance mess, sorted.</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="supabase.js"></script>
+<body class="bg-[#FAF8F5] text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 min-h-screen font-sans transition-colors duration-300">
+
+  <div id="app"></div>
+
+  <script>
+    // --- 1. DATA STORE ---
+    const pageData = {
+      brandName: "MessMate",
+      stats: [
+        { label: "Students", value: "1", highlight: false },
+        { label: "Active Today", value: "1", highlight: true },
+        { label: "Monthly Fee", value: "₹3500", highlight: false }
+      ],
+      menu: {
+        title: "Today's Lunch",
+        items: "Rice, Dal, Paneer Curry, Roti, Salad",
+        image: "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?auto=format&fit=crop&q=80&w=1000"
+      },
+      steps: [
+        {
+          num: "01",
+          title: "Scan the QR",
+          desc: "Tap the poster at hostel entry or scan QR. No apps, no downloads.",
+          icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5z" /></svg>`
+        },
+        {
+          num: "02",
+          title: "Register in 60s",
+          desc: "Name, photo, OTP verify, auto payment. Get your virtual ID instantly.",
+          icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>`
+        },
+        {
+          num: "03",
+          title: "Eat & track",
+          desc: "Toggle meals, see the menu, watch dues auto-calculate. Zero friction.",
+          icon: `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6"><path stroke-linecap="round" stroke-linejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3l2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75l2.25-1.313M12 21.75l-2.25-1.313M12 21.75v-2.25" /></svg>`
+        }
+      ],
+      roles: [
+        { title: "Student", path: "student/login.html", desc: "View menu, toggle meals, see dues, access your ID card." },
+        { title: "Admin", path: "Admin/login.html", desc: "Manage students, menus, manual payments, analytics." },
+        { title: "Accountant", path: "Accountant/login.html", desc: "Financial reports, collections, profit/loss, trends." }
+      ]
+    };
+
+    // --- 2. LAYOUT GENERATION ENGINE ---
+    function renderApp() {
+      const container = document.getElementById('app');
+      if (!container) return;
+
+      // Component A: Navbar
+      const navHtml = `
+        <nav class="sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b bg-[#FAF8F5]/90 border-zinc-200/60 backdrop-blur-md dark:bg-zinc-900/90 dark:border-zinc-800 transition-colors duration-300">
+          <div class="flex items-center gap-2">
+            <div class="flex h-8 w-8 items-center justify-center rounded-xl bg-[#D96B43] text-white font-black text-lg">M</div>
+            <span class="text-xl font-bold tracking-tight">${pageData.brandName}</span>
+          </div>
+          
+          <div class="flex items-center gap-4">
+            <button id="theme-toggle" class="p-2.5 rounded-full transition-all duration-200 active:scale-95 bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-yellow-400 dark:hover:bg-zinc-700" aria-label="Toggle theme">
+              <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 hidden">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V23M4.22 4.22l1.58 1.58m12.42 12.42l1.58 1.58M3 12h2.25m13.5 0H23M4.22 19.78l1.58-1.58M17.62 5.38l1.58-1.58M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />
+              </svg>
+              <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+              </svg>
+            </button>
+            
+            <button onclick="window.location.href='student/login.html'" class="flex items-center gap-1.5 px-4 py-2 text-sm font-medium border rounded-full transition-all active:scale-95 border-zinc-300 hover:bg-zinc-100 dark:border-zinc-700 dark:hover:bg-zinc-800">
+              <span>Sign in</span>
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H8.25" />
+              </svg>
+            </button>
+          </div>
+        </nav>
+      `;
+
+      // Component B: Hero Stats Mapping
+      const statsHtml = pageData.stats.map(stat => `
+        <div>
+          <span class="text-xs uppercase tracking-wider font-bold block mb-1 text-zinc-400 dark:text-zinc-500">${stat.label}</span>
+          <span class="text-3xl font-black ${stat.highlight ? 'text-[#D96B43]' : ''}">${stat.value}</span>
+        </div>
+      `).join('');
+
+      // Component C: Hero Base
+      const heroHtml = `
+        <section class="max-w-7xl mx-auto px-6 pt-16 pb-20 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+          <div class="lg:col-span-7 space-y-8">
+            <div class="space-y-3">
+              <span class="text-xs font-bold tracking-widest text-[#D96B43] uppercase">${pageData.brandName} Hostel</span>
+              <h1 class="text-5xl md:text-6xl font-black tracking-tight leading-[1.1]">
+                Zero-maintenance mess, <span class="text-[#D96B43]">sorted.</span>
+              </h1>
+            </div>
+            
+            <p class="text-lg max-w-xl text-zinc-600 dark:text-zinc-400 transition-colors duration-300">
+              QR onboarding, real-time tracking, auto-calculated dues. Students in, dues out — no paperwork, no chaos.
+            </p>
+
+            <div class="flex flex-wrap items-center gap-4">
+              <button class="flex items-center gap-2 bg-[#D96B43] hover:bg-[#c55d37] text-white font-semibold px-6 py-3.5 rounded-2xl shadow-lg shadow-[#D96B43]/20 transition-all transform active:scale-98">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M16.875 15.75a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25zM13.5 16.5v.75c0 .621.504 1.125 1.125 1.125h.75M13.5 19.5v.75c0 .621.504 1.125 1.125 1.125h.75M19.5 13.5h.75c.621 0 1.125.504 1.125 1.125v.75M16.5 21h.75c.621 0 1.125-.504 1.125-1.125v-.75m-6-6h.008v.008H10.5V13.5zm0 6h.008v.008H10.5V19.5zm6-6h.008v.008H16.5V13.5z" />
+                </svg>
+                <span>Register via QR</span>
+                <span class="text-lg">→</span>
+              </button>
+              <button onclick="window.location.href='student/login.html'" class="font-semibold px-6 py-3.5 border rounded-2xl transition-all active:scale-98 border-zinc-200 bg-white shadow-sm hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:hover:bg-zinc-700/50">
+                Student Login
+              </button>
+            </div>
+
+            <div class="pt-6 grid grid-cols-3 gap-6 max-w-md border-t border-dashed border-zinc-300 dark:border-zinc-700">
+              ${statsHtml}
+            </div>
+          </div>
+
+          <div class="lg:col-span-5 relative group">
+            <div class="overflow-hidden rounded-3xl shadow-xl bg-white dark:bg-zinc-800 p-3 transition-transform duration-500 hover:scale-[1.01]">
+              <div class="relative h-[380px] w-full rounded-2xl overflow-hidden bg-zinc-200">
+                <img src="${pageData.menu.image}" alt="Students dining" class="w-full h-full object-cover filter brightness-95 contrast-105" />
+                <div class="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-zinc-900/90 backdrop-blur-md p-4 rounded-xl shadow-lg border border-white/20">
+                  <span class="text-xs font-bold uppercase tracking-widest text-zinc-400 dark:text-zinc-500 block mb-1">${pageData.menu.title}</span>
+                  <p class="font-bold text-zinc-900 dark:text-white text-base md:text-lg">${pageData.menu.items}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+
+      // Component D: Step Mapping
+      const stepsHtml = pageData.steps.map(step => `
+        <div class="p-8 rounded-2xl border transition-all duration-300 ease-out transform hover:-translate-y-3 hover:scale-[1.02] bg-white border-zinc-200/80 hover:shadow-xl hover:shadow-zinc-200/50 dark:bg-zinc-900 dark:border-zinc-800 dark:hover:shadow-2xl dark:hover:shadow-black/40">
+          <div class="flex justify-between items-start mb-6">
+            <span class="text-sm font-mono font-bold text-zinc-400 dark:text-zinc-600">${step.num}</span>
+            <span class="text-[#D96B43] text-xl">${step.icon}</span>
+          </div>
+          <h3 class="text-xl font-bold mb-3">${step.title}</h3>
+          <p class="text-sm leading-relaxed text-zinc-500 dark:text-zinc-400">${step.desc}</p>
+        </div>
+      `).join('');
+
+      // Component E: Role Cards Mapping
+      const rolesHtml = pageData.roles.map(role => `
+        <div onclick="window.location.href='${role.path}'" class="p-8 rounded-2xl border flex flex-col justify-between group cursor-pointer transition-all duration-300 ease-out transform hover:-translate-y-2 hover:scale-[1.01] bg-white border-zinc-200/80 text-zinc-900 hover:bg-[#D96B43] hover:text-white hover:border-[#D96B43] hover:shadow-lg hover:shadow-[#D96B43]/20 dark:bg-zinc-900 dark:border-zinc-800 dark:text-zinc-100 dark:hover:bg-[#D96B43] dark:hover:text-white dark:hover:border-[#D96B43]">
+          <div>
+            <div class="flex justify-between items-center mb-4">
+              <h4 class="text-xl font-bold">${role.title}</h4>
+              <span class="transform transition-transform duration-300 group-hover:translate-x-2 text-xl">→</span>
+            </div>
+            <p class="text-sm leading-relaxed text-zinc-500 group-hover:text-orange-100/90 dark:text-zinc-400 transition-colors duration-200">${role.desc}</p>
+          </div>
+        </div>
+      `).join('');
+
+      // Component F: Features Base
+      const workflowHtml = `
+        <section class="max-w-7xl mx-auto px-6 py-20 border-t border-zinc-200/60 dark:border-zinc-800/60 transition-colors duration-300">
+          <h2 class="text-3xl font-black tracking-tight mb-12">How it works</h2>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">${stepsHtml}</div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">${rolesHtml}</div>
+        </section>
+      `;
+
+      // Master Paint Action
+      container.innerHTML = navHtml + heroHtml + workflowHtml;
+
+      // Link event tracking hooks
+      initThemeEngine();
+    }
+
+    // --- 3. THEME MANAGEMENT LOGIC ---
+    function initThemeEngine() {
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      const sunIcon = document.getElementById('sun-icon');
+      const moonIcon = document.getElementById('moon-icon');
+      const htmlElement = document.documentElement;
+
+      if (!themeToggleBtn || !sunIcon || !moonIcon) return;
+
+      function syncIcons() {
+        if (htmlElement.classList.contains('dark')) {
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+        } else {
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
+        }
+      }
+
+      // Sync icons immediately upon UI render completion
+      syncIcons();
+
+      themeToggleBtn.addEventListener('click', () => {
+        htmlElement.classList.toggle('dark');
+        syncIcons();
+      });
+    }
+
+    // --- 4. LIFE CYCLE BOOTSTRAP ---
+    document.addEventListener('DOMContentLoaded', renderApp);
+  </script>
+</body>
+</html>

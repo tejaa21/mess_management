@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en" class="">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sign in to MessMate</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', '"Helvetica Neue"', 'Arial', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+</head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="supabase.js"></script>
+<body class="bg-[#FAF8F5] text-zinc-900 dark:bg-zinc-900 dark:text-zinc-100 min-h-screen font-sans transition-colors duration-300 flex flex-col">
+
+  <div id="app" class="flex-1 flex flex-col"></div>
+
+  <script>
+    // --- 1. STATE STORE ---
+    const state = {
+      currentRole: 'Student', // 'Student' | 'Admin' | 'Accountant'
+      roles: ['Student', 'Admin', 'Accountant']
+    };
+
+    // --- 2. LAYOUT GENERATION ENGINE ---
+    function renderApp() {
+      const container = document.getElementById('app');
+      if (!container) return;
+
+      const activeRoleUpper = state.currentRole.toUpperCase();
+
+      container.innerHTML = `
+        <header class="flex items-center justify-between px-6 py-4 border-b border-zinc-200/40 dark:border-zinc-800/60 bg-[#FAF8F5]/50 dark:bg-zinc-900/50 backdrop-blur-sm">
+          <a href="../index.html" class="flex items-center gap-2 text-sm font-medium hover:opacity-80 transition-opacity active:scale-95 duration-100 text-zinc-900 dark:text-zinc-100">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M10.5 19.5L3 12m0 0l7.5-7.5M3 12h18" />
+            </svg>
+            <span>Back</span>
+          </a>
+
+          <button id="theme-toggle" class="p-2.5 rounded-full transition-all duration-200 active:scale-95 border border-zinc-200 dark:border-zinc-800 bg-white text-zinc-700 hover:bg-zinc-100 dark:bg-zinc-800 dark:text-yellow-400 dark:hover:bg-zinc-700" aria-label="Toggle theme">
+            <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5 hidden">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V23M4.22 4.22l1.58 1.58m12.42 12.42l1.58 1.58M3 12h2.25m13.5 0H23M4.22 19.78l1.58-1.58M17.62 5.38l1.58-1.58M12 7.5a4.5 4.5 0 100 9 4.5 4.5 0 000-9z" />
+            </svg>
+            <svg id="moon-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.718 9.718 0 0118 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 003 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 009.002-5.998z" />
+            </svg>
+          </button>
+        </header>
+
+        <main class="flex-1 flex flex-col items-center justify-center px-6 py-12">
+          <div class="w-full max-w-[440px] text-center space-y-8">
+            
+            <div class="space-y-3">
+              <span id="role-badge" class="text-xs font-bold tracking-widest text-[#D96B43] uppercase bg-orange-500/5 dark:bg-orange-500/10 px-3 py-1 rounded-full transition-all duration-300">
+                ${activeRoleUpper} ACCESS
+              </span>
+              <h1 class="text-4xl font-black tracking-tight text-zinc-900 dark:text-white pt-1">
+                Sign in to MessMate
+              </h1>
+              <p class="text-sm text-zinc-500 dark:text-zinc-400">
+                New here? Scan a QR poster or 
+                <a href="registration.html" class="inline-block text-[#D96B43] font-medium hover:underline focus:outline-none focus:ring-2 focus:ring-[#D96B43]/20 rounded px-1 transition-all">
+                  register now
+                </a>
+              </p>
+            </div>
+
+            <form id="auth-form" class="space-y-5 text-left" onsubmit="handleLoginSubmit(event)">
+              <div class="space-y-2">
+                <label for="email" class="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 block">
+                  Email
+                </label>
+                <input 
+                  type="email" 
+                  id="email" 
+                  autocomplete="email"
+                  required
+                  class="w-full px-4 py-3 rounded-xl border border-zinc-200 bg-white/50 text-zinc-900 dark:border-zinc-800 dark:bg-zinc-800/40 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D96B43]/20 focus:border-[#D96B43] transition-all duration-200"
+                />
+              </div>
+
+              <div class="space-y-2">
+                <label for="password" class="text-[11px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500 block">
+                  Password
+                </label>
+                <input 
+                  type="password" 
+                  id="password" 
+                  autocomplete="current-password"
+                  required
+                  class="w-full px-4 py-3 rounded-xl border border-zinc-200 bg-white/50 text-zinc-900 dark:border-zinc-800 dark:bg-zinc-800/40 dark:text-white focus:outline-none focus:ring-2 focus:ring-[#D96B43]/20 focus:border-[#D96B43] transition-all duration-200"
+                />
+              </div>
+
+              <button 
+                type="submit" 
+                class="w-full flex items-center justify-center gap-2 bg-[#D96B43] hover:bg-[#c55d37] text-white font-semibold py-3.5 px-6 rounded-2xl shadow-lg shadow-[#D96B43]/10 transition-all transform active:scale-[0.99]"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l3 3m0 0l-3 3m3-3H8.25" />
+                </svg>
+                <span id="submit-btn-text">Continue as ${state.currentRole}</span>
+              </button>
+            </form>
+
+            <div class="flex items-center justify-center gap-2 pt-4 border-t border-dashed border-zinc-200 dark:border-zinc-800">
+              ${state.roles.map(role => {
+                const isActive = state.currentRole === role;
+                return `
+                  <button 
+                    onclick="handleRoleSelection('${role}')"
+                    class="px-5 py-2 text-xs font-medium rounded-full transition-all duration-200 active:scale-95 ${
+                      isActive 
+                        ? 'bg-[#D96B43] text-white shadow-sm shadow-[#D96B43]/20' 
+                        : 'border border-zinc-200 hover:bg-zinc-100 bg-white text-zinc-600 dark:border-zinc-800 dark:bg-zinc-800/50 dark:text-zinc-400 dark:hover:bg-zinc-800'
+                    }"
+                  >
+                    ${role}
+                  </button>
+                `;
+              }).join('')}
+            </div>
+
+          </div>
+        </main>
+      `;
+
+      initThemeEngine();
+    }
+
+    // --- 3. MUTATION & ROUTING ACTIONS ---
+    function handleRoleSelection(targetRole) {
+      if (targetRole === 'Admin') {
+        window.location.href = "../Admin/login.html";
+      } else if (targetRole === 'Accountant') {
+        window.location.href = "../Accountant/login.html";
+      } else {
+        if (state.currentRole === targetRole) return;
+        state.currentRole = targetRole;
+        renderApp();
+      }
+    }
+
+    // --- 4. FORM SUBMISSION INTERCEPTOR ---
+async function handleLoginSubmit(event) {
+
+  event.preventDefault();
+
+  const email =
+    document.getElementById('email').value;
+
+  const password =
+    document.getElementById('password').value;
+
+  // Check user from Supabase
+  const { data, error } =
+    await supabaseClient
+      .from("users")
+      .select("*")
+      .eq("email", email)
+      .eq("password", password)
+      .single();
+
+  if (error || !data) {
+
+    alert("Invalid Email or Password");
+    return;
+
+  }
+
+  // Save email locally
+  localStorage.setItem(
+    "studentEmail",
+    data.email
+  );
+
+  // Go dashboard
+  window.location.href =
+    "dashboard.html";
+}
+
+    // --- 5. THEME CONTROL ENGINE ---
+    function initThemeEngine() {
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      const sunIcon = document.getElementById('sun-icon');
+      const moonIcon = document.getElementById('moon-icon');
+      const htmlElement = document.documentElement;
+
+      if (!themeToggleBtn || !sunIcon || !moonIcon) return;
+
+      function syncIcons() {
+        if (htmlElement.classList.contains('dark')) {
+          sunIcon.classList.remove('hidden');
+          moonIcon.classList.add('hidden');
+        } else {
+          sunIcon.classList.add('hidden');
+          moonIcon.classList.remove('hidden');
+        }
+      }
+
+      syncIcons();
+
+      themeToggleBtn.onclick = () => {
+        htmlElement.classList.toggle('dark');
+        syncIcons();
+      };
+    }
+
+    // --- 6. INITIALIZATION HOOK ---
+    document.addEventListener('DOMContentLoaded', renderApp);
+  </script>
+</body>
+</html>

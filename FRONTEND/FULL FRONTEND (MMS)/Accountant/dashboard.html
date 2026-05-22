@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MessMate Pro - CA Compliance & Audit Terminal</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: { 
+          colors: { 
+            brand: { DEFAULT: '#0F172A', hover: '#1E293B' },
+            audit: { DEFAULT: '#D96B43', hover: '#C55D37' }
+          }
+        }
+      }
+    }
+    if (localStorage.getItem('admin_theme') === 'dark') {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
+</head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="../supabase.js"></script>
+<body class="bg-[#FCFAF7] text-zinc-900 dark:bg-zinc-950 dark:text-zinc-100 min-h-screen transition-colors duration-300 flex flex-col font-mono text-xs">
+
+  <div class="flex-1 flex flex-col">
+    
+    <header class="flex items-center justify-between px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 shadow-sm">
+      <div class="flex flex-col text-left">
+        <span class="text-[11px] uppercase tracking-widest font-bold text-zinc-400">ACCOUNTANT</span>
+        <h2 class="text-xl font-black tracking-tight text-zinc-800 dark:text-white">Financials</h2>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="toggleTheme()" class="p-2.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-xs">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 block dark:hidden"><path stroke-linecap="round" stroke-linejoin="round" d="M21.752 15.002A9.72 9.72 0 0 1 18 15.75c-5.385 0-9.75-4.365-9.75-9.75 0-1.33.266-2.597.748-3.752A9.753 9.753 0 0 0 3 11.25C3 16.635 7.365 21 12.75 21a9.753 9.753 0 0 0 9.002-5.998Z" /></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-4 h-4 hidden dark:block text-amber-400"><path stroke-linecap="round" stroke-linejoin="round" d="M12 3v2.25m0 13.5V21M4.22 4.22l1.59 1.59m11.36 11.36l1.59 1.59M3 12h2.25m13.5 0H21m-16.78 6.78l1.59-1.59M17.66 6.34l1.59-1.59M12 7.5a4.5 4.5 0 1 0 0 9 4.5 4.5 0 0 0 0-9z" /></svg>
+        </button>
+        <button onclick="window.location.reload()" class="px-4 py-2.5 bg-zinc-900 hover:bg-zinc-800 dark:bg-zinc-100 dark:hover:bg-zinc-200 dark:text-zinc-950 text-white font-bold rounded-xl transition-all shadow-xs">
+          Force Re-Audit
+        </button>
+      </div>
+    </header>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 space-y-6">
+      <div id="payment-list" class="space-y-4"></div>
+      <div class="grid grid-cols-2 md:grid-cols-4 border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 divide-x divide-y divide-zinc-200 dark:divide-zinc-800 text-left shadow-xs">
+        <div class="p-5 space-y-1 border-t border-l border-zinc-200 dark:border-zinc-800">
+          <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Gross Book Receivables</span>
+          <div id="acc-stat-expected" class="text-2xl font-black font-sans">₹0.00</div>
+        </div>
+        <div class="p-5 space-y-1">
+          <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Realized Revenue Cash-Flow</span>
+          <div id="acc-stat-collected" class="text-2xl font-black font-sans text-emerald-600 dark:text-emerald-400">₹0.00</div>
+        </div>
+        <div class="p-5 space-y-1">
+          <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Ageing Uncollected Sundry</span>
+          <div id="acc-stat-pending" class="text-2xl font-black font-sans text-amber-600 dark:text-amber-400">₹0.00</div>
+        </div>
+        <div class="p-5 space-y-1">
+          <span class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">Provision for Provisionals (40%)</span>
+          <div id="acc-stat-profit" class="text-2xl font-black font-sans text-blue-600 dark:text-blue-400">₹0.00</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-4 text-left shadow-xs flex flex-col justify-between">
+          <div>
+            <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">TAXATION ENGINE</span>
+            <h3 class="text-sm font-black tracking-tight mt-0.5">Automated GST Allocation Tool</h3>
+            <p class="text-[11px] text-zinc-500 mt-2 leading-relaxed">Adjust percentage targets to view gross and net configurations for statutory filings.</p>
+          </div>
+          
+          <div class="space-y-3 my-2">
+            <div>
+              <div class="flex justify-between text-[11px] mb-1 font-semibold">
+                <span>Calculated Slab Rate</span>
+                <span id="gst-percentage-val" class="font-bold text-audit">5%</span>
+              </div>
+              <input type="range" id="gst-slider" min="0" max="28" step="1" value="5" oninput="recalcTaxEngine()" class="w-full accent-audit bg-zinc-100 dark:bg-zinc-800 h-1.5 rounded-lg appearance-none cursor-pointer">
+            </div>
+            
+            <div class="p-3 bg-zinc-50 dark:bg-zinc-950 rounded-xl space-y-2 border border-zinc-100 dark:border-zinc-800">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-zinc-400">Tax Liability Provision:</span>
+                <span id="tax-liability-output" class="font-bold">₹0.00</span>
+              </div>
+              <div class="flex justify-between text-[11px]">
+                <span class="text-zinc-400">Net Retained Reserves:</span>
+                <span id="net-retained-output" class="font-bold text-emerald-600 dark:text-emerald-400">₹0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-5 space-y-2 text-left shadow-xs lg:col-span-2">
+          <div>
+            <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">REVENUE TIMELINE TREND</span>
+            <h3 class="text-sm font-black tracking-tight mt-0.5">Auditable Multi-Period Inflow Delta</h3>
+          </div>
+          <div class="pt-4 pb-2 h-36 relative flex items-end">
+            <div class="absolute top-0 left-0 text-[9px] text-zinc-400 font-mono h-full flex flex-col justify-between select-none">
+              <span>12000</span><span>8000</span><span>4000</span><span>0</span>
+            </div>
+            <div class="w-full h-px bg-zinc-100 dark:bg-zinc-800 absolute bottom-6 left-0"></div>
+            <div class="w-full flex justify-between px-12 font-mono text-[9px] text-zinc-400 absolute bottom-0 left-0">
+              <span>Q1 PERIOD (2026-04)</span><span>Q2 PERIOD (2026-05)</span>
+            </div>
+            <svg class="w-full h-24 ml-10 mb-6" viewBox="0 0 100 20" preserveAspectRatio="none">
+              <polyline fill="none" stroke="#D96B43" stroke-width="1" points="0,15 100,3"/>
+              <circle cx="0" cy="15" r="1.5" fill="#D96B43" />
+              <circle cx="100" cy="3" r="1.5" fill="#D96B43" />
+            </svg>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-6 space-y-4 shadow-sm text-left max-w-xl mx-auto">
+        <div>
+          <span class="text-[9px] font-bold text-zinc-400 uppercase tracking-widest block">POST JOURNALS</span>
+          <h3 class="text-base font-black tracking-tight mt-0.5">Post Adjusting Voucher Entry</h3>
+        </div>
+        <div class="space-y-3">
+          <div>
+            <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Select Debit Account Sub-Ledger (Entity Profile)</label>
+            <select id="pay-student-idx" class="w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-zinc-950 text-xs font-semibold dark:border-zinc-800 outline-none focus:border-audit transition-all"></select>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Voucher Type</label>
+              <select id="pay-tx-type" class="w-full px-4 py-2.5 rounded-xl border bg-white dark:bg-zinc-950 text-xs font-semibold dark:border-zinc-800 outline-none focus:border-audit transition-all">
+                <option value="Manual">Manual Settlement</option>
+                <option value="Reconciliation">Audit Adjustment</option>
+                <option value="BadDebt">Bad Debt Write-Off</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block mb-1">Amount Quantifier (₹)</label>
+              <input type="number" id="pay-amount" placeholder="Value in INR" class="w-full px-4 py-2.5 rounded-xl border bg-transparent text-xs font-semibold dark:border-zinc-800 outline-none focus:border-audit transition-all" />
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end pt-2">
+          <button onclick="submitPayment()" class="px-5 py-2.5 bg-audit hover:bg-audit-hover text-white text-xs font-bold rounded-xl transition-all shadow-md">Execute Double-Entry Post</button>
+        </div>
+      </div>
+
+      <div class="space-y-3 text-left">
+        <div class="flex justify-between items-center flex-wrap gap-2">
+          <div class="flex gap-1.5 bg-zinc-100 dark:bg-zinc-900 p-1 rounded-xl border border-zinc-200 dark:border-zinc-800">
+            <button onclick="filterTransactions('all')" id="tx-btn-all" class="tx-tab px-3 py-1 rounded-lg text-xs font-bold transition-all bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm">All Journals</button>
+            <button onclick="filterTransactions('Registration')" id="tx-btn-reg" class="tx-tab px-3 py-1 rounded-lg text-xs font-bold transition-all text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200">System Autopost</button>
+            <button onclick="filterTransactions('Manual')" id="tx-btn-man" class="tx-tab px-3 py-1 rounded-lg text-xs font-bold transition-all text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200">Manual Adjustments</button>
+          </div>
+          <button onclick="exportLedgerCSV()" class="px-4 py-1.5 rounded-xl text-xs font-bold border dark:border-zinc-800 bg-white dark:bg-zinc-900 flex items-center gap-1.5 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-all shadow-sm">
+            Generate Annexure .CSV
+          </button>
+        </div>
+
+        <div class="border border-zinc-200 dark:border-zinc-800 rounded-2xl overflow-hidden bg-white dark:bg-zinc-900 overflow-x-auto shadow-sm">
+          <table class="w-full text-xs text-left whitespace-nowrap">
+            <thead class="bg-zinc-50 dark:bg-zinc-950 border-b border-zinc-200 dark:border-zinc-800 text-[10px] font-bold tracking-wider text-zinc-400 uppercase select-none">
+              <tr>
+                <th onclick="handleTxSort('date')" class="px-6 py-3.5 cursor-pointer hover:text-audit">Posting Date <span id="sort-tx-date"></span></th>
+                <th onclick="handleTxSort('student')" class="px-6 py-3.5 cursor-pointer hover:text-audit">Counterparty Subledger Account <span id="sort-tx-student"></span></th>
+                <th class="px-6 py-3.5">Tax Index Identifier</th>
+                <th class="px-6 py-3.5">Voucher Type</th>
+                <th class="px-6 py-3.5">Payment Route</th>
+                <th onclick="handleTxSort('amount')" class="px-6 py-3.5 cursor-pointer hover:text-audit">Audited Amount <span id="sort-tx-amount"></span></th>
+              </tr>
+            </thead>
+            <tbody id="accounting-table-body" class="divide-y divide-zinc-200 dark:divide-zinc-800 font-medium"></tbody>
+          </table>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script>
+    let students = [
+      { indexNumber: "TXN-2026-0003", fullName: "Asset Subledger Alpha", balance: 0 },
+      { indexNumber: "TXN-2026-0002", fullName: "Asset Subledger Beta", balance: 0 },
+      { indexNumber: "TXN-2026-0001", fullName: "Asset Subledger Gamma", balance: -500 }
+    ];
+
+    let ledgerTransactions = [
+      { date: "2026-05-20", student: "Asset Subledger Alpha", indexNumber: "TXN-2026-0003", type: "Registration", method: "Online Clearing", amount: 3500 },
+      { date: "2026-05-20", student: "Asset Subledger Beta", indexNumber: "TXN-2026-0002", type: "Registration", method: "Online Clearing", amount: 3500 },
+      { date: "2026-04-21", student: "Asset Subledger Gamma", indexNumber: "TXN-2026-0001", type: "Manual", method: "Offline Cash", amount: 500 },
+      { date: "2026-04-21", student: "Asset Subledger Gamma", indexNumber: "TXN-2026-0001", type: "Registration", method: "Online Clearing", amount: 3500 }
+    ];
+
+    let txSortConfig = { key: null, direction: 'asc' };
+    let activeTxFilter = 'all';
+
+    document.addEventListener("DOMContentLoaded", () => {
+      calculateFinancialMetrics();
+      renderAccountingLedger();
+      populateStudentDropdowns();
+      recalcTaxEngine();
+    });
+
+    function calculateFinancialMetrics() {
+      const collected = ledgerTransactions.reduce((sum, t) => sum + t.amount, 0);
+      const pending = students.reduce((sum, s) => sum + (s.balance < 0 ? Math.abs(s.balance) : 0), 0);
+      const expected = collected + pending;
+      const profit = Math.round(collected * 0.40);
+
+      document.getElementById('acc-stat-expected').innerText = `₹${expected.toLocaleString('en-IN')}.00`;
+      document.getElementById('acc-stat-collected').innerText = `₹${collected.toLocaleString('en-IN')}.00`;
+      document.getElementById('acc-stat-pending').innerText = `₹${pending.toLocaleString('en-IN')}.00`;
+      document.getElementById('acc-stat-profit').innerText = `₹${profit.toLocaleString('en-IN')}.00`;
+    }
+
+    function recalcTaxEngine() {
+      const collected = ledgerTransactions.reduce((sum, t) => sum + t.amount, 0);
+      const rate = parseInt(document.getElementById('gst-slider').value);
+      document.getElementById('gst-percentage-val').innerText = `${rate}%`;
+      
+      const liability = Math.round(collected * (rate / (100 + rate)));
+      const retained = collected - liability;
+
+      document.getElementById('tax-liability-output').innerText = `₹${liability.toLocaleString('en-IN')}.00`;
+      document.getElementById('net-retained-output').innerText = `₹${retained.toLocaleString('en-IN')}.00`;
+    }
+
+    function renderAccountingLedger() {
+      const tbody = document.getElementById('accounting-table-body');
+      let processed = [...ledgerTransactions];
+
+      if (activeTxFilter !== 'all') {
+        processed = processed.filter(t => t.type === activeTxFilter);
+      }
+
+      if (txSortConfig.key) {
+        processed.sort((a, b) => {
+          let valA = a[txSortConfig.key];
+          let valB = b[txSortConfig.key];
+          if (typeof valA === 'string') {
+            return txSortConfig.direction === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+          }
+          return txSortConfig.direction === 'asc' ? valA - valB : valB - valA;
+        });
+      }
+
+      tbody.innerHTML = processed.map(t => `
+        <tr class="hover:bg-zinc-50/50 dark:hover:bg-zinc-800/50 border-b border-zinc-100 dark:border-zinc-800">
+          <td class="px-6 py-4 font-bold text-zinc-500">${t.date}</td>
+          <td class="px-6 py-4 font-bold text-zinc-700 dark:text-zinc-200">${t.student}</td>
+          <td class="px-6 py-4 font-mono text-[11px]">${t.indexNumber}</td>
+          <td class="px-6 py-4"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${t.type === 'Registration' ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' : 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300'}">${t.type.toUpperCase()}</span></td>
+          <td class="px-6 py-4 text-zinc-500">${t.method}</td>
+          <td class="px-6 py-4 font-black text-zinc-900 dark:text-white">₹${t.amount.toLocaleString('en-IN')}.00</td>
+        </tr>
+      `).join('');
+    }
+
+    function handleTxSort(key) {
+      txSortConfig.direction = (txSortConfig.key === key && txSortConfig.direction === 'asc') ? 'desc' : 'asc';
+      txSortConfig.key = key;
+      ['date', 'student', 'amount'].forEach(k => {
+        const el = document.getElementById(`sort-tx-${k}`);
+        if (el) el.innerText = '';
+      });
+      document.getElementById(`sort-tx-${key}`).innerText = txSortConfig.direction === 'asc' ? ' [ASC]' : ' [DESC]';
+      renderAccountingLedger();
+    }
+
+    function filterTransactions(type) {
+      activeTxFilter = type;
+      document.querySelectorAll('.tx-tab').forEach(btn => {
+        btn.className = "tx-tab px-3 py-1 rounded-lg text-xs font-bold transition-all text-zinc-500 hover:text-zinc-800 dark:hover:text-zinc-200";
+      });
+      
+      const targetId = type === 'all' ? 'tx-btn-all' : type === 'Registration' ? 'tx-btn-reg' : 'tx-btn-man';
+      const activeClass = "tx-tab px-3 py-1 rounded-lg text-xs font-bold transition-all bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 shadow-sm";
+      document.getElementById(targetId).className = activeClass;
+      renderAccountingLedger();
+    }
+
+    function populateStudentDropdowns() {
+      const dropdown = document.getElementById('pay-student-idx');
+      dropdown.innerHTML = '<option disabled selected value="">Choose system ledger account destination...</option>' + 
+        students.map(s => `<option value="${s.indexNumber}">${s.fullName} [${s.indexNumber}]</option>`).join('');
+    }
+
+    function submitPayment() {
+      const targetIdx = document.getElementById('pay-student-idx').value;
+      const amountInput = document.getElementById('pay-amount');
+      const txType = document.getElementById('pay-tx-type').value;
+      const amount = parseInt(amountInput.value);
+
+      if (!targetIdx || isNaN(amount) || amount <= 0) {
+        alert("CRITICAL ERROR: Provide validated journal entries before posting to subledgers.");
+        return;
+      }
+
+      const match = students.find(s => s.indexNumber === targetIdx);
+      if (match) {
+        match.balance += amount;
+        
+        ledgerTransactions.unshift({
+          date: new Date().toISOString().split('T')[0],
+          student: match.fullName,
+          indexNumber: match.indexNumber,
+          type: txType === 'Registration' ? 'Registration' : 'Manual',
+          method: txType === 'BadDebt' ? 'Write-off Allocation' : 'Manual Adjustment Entry',
+          amount: amount
+        });
+
+        calculateFinancialMetrics();
+        recalcTaxEngine();
+        renderAccountingLedger();
+
+        amountInput.value = '';
+        document.getElementById('pay-student-idx').selectedIndex = 0;
+      }
+    }
+
+    // Toggle Theme Logic
+    function toggleTheme() {
+      if (document.documentElement.classList.contains('dark')) {
+        document.documentElement.classList.remove('dark');
+        localStorage.setItem('admin_theme', 'light');
+      } else {
+        document.documentElement.classList.add('dark');
+        localStorage.setItem('admin_theme', 'dark');
+      }
+    }
+
+    function exportLedgerCSV() {
+      let csvContent = "data:text/csv;charset=utf-8,Posting Date,Counterparty Account,Tax Identifier ID,Voucher Type,Payment Route,Audited Value\n";
+      ledgerTransactions.forEach(t => {
+        csvContent += `${t.date},"${t.student}",${t.indexNumber},${t.type},${t.method},${t.amount}\n`;
+      });
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", `CA_Annexure_Report_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+
+    document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+
+    const { data, error } =
+      await supabaseClient
+        .from("users")
+        .select("*");
+
+    if (error) {
+
+      console.log(error);
+      alert("Unable to load payments");
+      return;
+
+    }
+
+    const container =
+      document.getElementById(
+        "payment-list"
+      );
+
+    container.innerHTML = "";
+
+    data.forEach(student => {
+
+      container.innerHTML += `
+
+        <div class="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl p-4">
+
+          <div class="flex items-center justify-between">
+
+            <div class="flex items-center gap-4">
+
+              <img
+                src="${student.photo_url}"
+                class="w-14 h-14 rounded-xl object-cover border"
+              >
+
+              <div>
+
+                <h2 class="font-black">
+                  ${student.full_name}
+                </h2>
+
+                <p class="text-sm text-zinc-500">
+                  ${student.department}
+                </p>
+
+              </div>
+
+            </div>
+
+            <div class="text-right">
+
+              <p class="text-emerald-600 font-black">
+                PAID
+              </p>
+
+              <p class="text-xs text-zinc-500">
+                Mess Subscription
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      `;
+
+    });
+
+});
+  </script>
+</body>
+</html>
